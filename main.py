@@ -349,5 +349,5 @@ while True:
     screen.blit(scramble_surf, scramble_rect)
     screen.blit(solution_surf, solution_rect)
 
-    clock.tick(60)
+    clock.tick(30)
     pygame.display.update()

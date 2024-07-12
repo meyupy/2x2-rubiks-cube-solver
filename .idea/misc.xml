@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.10 (2x2_rubiks_cube_solver) (2)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10 (2x2_rubiks_cube_solver) (2)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10 (2x2-rubiks-cube-solver)" project-jdk-type="Python SDK" />
 </project>

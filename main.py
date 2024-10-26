@@ -4,17 +4,18 @@ import random
 pygame.init()
 
 W = 1024   # screen width
+
+FONT, FONT_LARGE = pygame.font.Font(None, W // 32), pygame.font.Font(None, W // 16)
+
 BG_COLOR, BG_PANEL_COLOR = (15, 15, 15), (31, 31, 31)
 BUTTON_COLOR_1, BUTTON_COLOR_2 = (95, 95, 95), (79, 79, 79)
 TEXT_COLOR_1_1, TEXT_COLOR_1_2 = (95, 95, 95), (63, 63, 63)
 TEXT_COLOR_2_1, TEXT_COLOR_2_2 = (0, 155, 72), (0, 91, 8)
 
-gui_font, gui_font_large = pygame.font.Font(None, W // 32), pygame.font.Font(None, W // 16)
-
-screen = pygame.display.set_mode((W, 3 * W // 4))
+SCREEN = pygame.display.set_mode((W, 3 * W // 4))
+BG_PANEL_RECT = pygame.rect.Rect(0, 0, 3 * W // 4, 9 * W // 16)
+CLOCK = pygame.time.Clock()
 pygame.display.set_caption("2x2 Rubik's Cube Solver")
-bg_panel = pygame.rect.Rect(0, 0, 3 * W // 4, 9 * W // 16)
-clock = pygame.time.Clock()
 
 NOTATIONS = ["F ", "F2", "F'", "U ", "U2", "U'", "R ", "R2", "R'"]
 
@@ -246,7 +247,7 @@ for x_position, y_position in CUBE_FACE_POSITIONS:
 for i in range(18):
     x_position, y_position = TURNER_BUTTON_POSITIONS[i]
     x_position, y_position = x_position + W // 256, y_position + W // 256
-    new_button = Button(screen, TURNER_BUTTON_TEXTS[i], gui_font, x_position, y_position, 7 * W // 128, 7 * W // 128,
+    new_button = Button(SCREEN, TURNER_BUTTON_TEXTS[i], FONT, x_position, y_position, 7 * W // 128, 7 * W // 128,
                         BUTTON_COLOR_1, BUTTON_COLOR_2, BG_COLOR, W // 256)
     turner_buttons.append(new_button)
 
@@ -258,16 +259,16 @@ last_solution_permutations = []
 
 last_permutation_solved = None
 
-scramble_surf = gui_font_large.render("", True, TEXT_COLOR_1_1)
+scramble_surf = FONT_LARGE.render("", True, TEXT_COLOR_1_1)
 scramble_rect = scramble_surf.get_rect(center=(3 * W // 8, 79 * W // 128))
-solution_surf = gui_font_large.render("", True, TEXT_COLOR_2_1)
+solution_surf = FONT_LARGE.render("", True, TEXT_COLOR_2_1)
 solution_rect = solution_surf.get_rect(center=(3 * W // 8, 89 * W // 128))
 
-button_reset = Button(screen, "Reset", gui_font, 13 * W // 16, 29 * W // 64, W // 8, W // 16,
+button_reset = Button(SCREEN, "Reset", FONT, 13 * W // 16, 29 * W // 64, W // 8, W // 16,
                       BUTTON_COLOR_1, BUTTON_COLOR_2, BG_COLOR, W // 64)
-button_scramble = Button(screen, "Scramble", gui_font, 13 * W // 16, 35 * W // 64, W // 8, W // 16,
+button_scramble = Button(SCREEN, "Scramble", FONT, 13 * W // 16, 35 * W // 64, W // 8, W // 16,
                          BUTTON_COLOR_1, BUTTON_COLOR_2, BG_COLOR, W // 64)
-button_solve = Button(screen, "Solve", gui_font, 13 * W // 16, 41 * W // 64, W // 8, W // 16,
+button_solve = Button(SCREEN, "Solve", FONT, 13 * W // 16, 41 * W // 64, W // 8, W // 16,
                       BUTTON_COLOR_1, BUTTON_COLOR_2, BG_COLOR, W // 64)
 
 DEFAULT_PERMUTATION = "ggggwwwwrrrrbbbbyyyyoooo"
@@ -286,13 +287,13 @@ while True:
             current_permutation = "".join(produce_permutation_for_turner_buttons
                                           (turner_button.text, current_permutation))
             if current_permutation == last_scrambled_permutation:
-                scramble_surf = gui_font_large.render(scramble, True, TEXT_COLOR_1_1)
+                scramble_surf = FONT_LARGE.render(scramble, True, TEXT_COLOR_1_1)
             else:
-                scramble_surf = gui_font_large.render(scramble, True, TEXT_COLOR_1_2)
+                scramble_surf = FONT_LARGE.render(scramble, True, TEXT_COLOR_1_2)
             if current_permutation in last_solution_permutations:
-                solution_surf = gui_font_large.render(solution, True, TEXT_COLOR_2_1)
+                solution_surf = FONT_LARGE.render(solution, True, TEXT_COLOR_2_1)
             else:
-                solution_surf = gui_font_large.render(solution, True, TEXT_COLOR_2_2)
+                solution_surf = FONT_LARGE.render(solution, True, TEXT_COLOR_2_2)
 
     if button_reset.is_clicked():
         current_permutation = DEFAULT_PERMUTATION
@@ -301,19 +302,19 @@ while True:
         last_scrambled_permutation = None
         last_solution_permutations = []
         last_permutation_solved = None
-        scramble_surf = gui_font_large.render("", True, TEXT_COLOR_1_1)
-        solution_surf = gui_font_large.render("", True, TEXT_COLOR_2_1)
+        scramble_surf = FONT_LARGE.render("", True, TEXT_COLOR_1_1)
+        solution_surf = FONT_LARGE.render("", True, TEXT_COLOR_2_1)
 
     if button_scramble.is_clicked():
         scramble = produce_random_scramble()
         current_permutation = produce_permutation_from_path(DEFAULT_PERMUTATION, scramble)
         last_scrambled_permutation = current_permutation
         scramble = convert_path_into_display_text(scramble)
-        scramble_surf = gui_font_large.render(scramble, True, TEXT_COLOR_1_1)
+        scramble_surf = FONT_LARGE.render(scramble, True, TEXT_COLOR_1_1)
         scramble_rect = scramble_surf.get_rect(center=(3 * W // 8, 79 * W // 128))
         solution = ""
         last_solution_permutations = []
-        solution_surf = gui_font_large.render("", True, TEXT_COLOR_2_1)
+        solution_surf = FONT_LARGE.render("", True, TEXT_COLOR_2_1)
 
     if button_solve.is_clicked():
         if not is_cube_solved(current_permutation) and current_permutation != last_permutation_solved:
@@ -322,22 +323,22 @@ while True:
             last_solution_permutations = produce_permutations_from_path(current_permutation, solution)
             last_permutation_solved = current_permutation
             solution = convert_path_into_display_text(solution)
-            solution_surf = gui_font_large.render(solution, True, TEXT_COLOR_2_1)
+            solution_surf = FONT_LARGE.render(solution, True, TEXT_COLOR_2_1)
             solution_rect = solution_surf.get_rect(center=(3 * W // 8, 89 * W // 128))
             if current_permutation != last_scrambled_permutation:
                 scramble = ""
                 last_scrambled_permutation = None
-                scramble_surf = gui_font_large.render("", True, TEXT_COLOR_1_1)
+                scramble_surf = FONT_LARGE.render("", True, TEXT_COLOR_1_1)
         elif is_cube_solved(current_permutation) and "" == scramble:
             solution = ""
             last_solution_permutations = []
-            solution_surf = gui_font_large.render("", True, TEXT_COLOR_2_1)
+            solution_surf = FONT_LARGE.render("", True, TEXT_COLOR_2_1)
 
-    screen.fill(BG_COLOR)
-    pygame.draw.rect(screen, BG_PANEL_COLOR, bg_panel)
+    SCREEN.fill(BG_COLOR)
+    pygame.draw.rect(SCREEN, BG_PANEL_COLOR, BG_PANEL_RECT)
 
     for i in range(24):
-        pygame.draw.rect(screen, color_to_rgb_dict[current_permutation[i]], square_rects[i], border_radius=W//256)
+        pygame.draw.rect(SCREEN, color_to_rgb_dict[current_permutation[i]], square_rects[i], border_radius=W//256)
 
     for turner_button in turner_buttons:
         turner_button.draw()
@@ -346,8 +347,8 @@ while True:
     button_scramble.draw()
     button_solve.draw()
 
-    screen.blit(scramble_surf, scramble_rect)
-    screen.blit(solution_surf, solution_rect)
+    SCREEN.blit(scramble_surf, scramble_rect)
+    SCREEN.blit(solution_surf, solution_rect)
 
-    clock.tick(30)
+    CLOCK.tick(30)
     pygame.display.update()

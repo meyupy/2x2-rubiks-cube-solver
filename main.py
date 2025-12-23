@@ -189,7 +189,6 @@ def is_cube_solved(perm):
 
 
 def find_solution(perm):
-    """Bidirectional BFS search - much faster than unidirectional"""
     if is_cube_solved(perm):
         return []
     

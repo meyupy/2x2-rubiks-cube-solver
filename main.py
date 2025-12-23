@@ -18,7 +18,12 @@ CLOCK = pygame.time.Clock()
 pygame.display.set_caption("2x2 Rubik's Cube Solver")
 
 NOTATIONS = ["F ", "F2", "F'", "U ", "U2", "U'", "R ", "R2", "R'"]
-
+INVERSE_NOTATION = {"F ": "F'", "F'": "F ", "F2": "F2",
+                    "U ": "U'", "U'": "U ", "U2": "U2",
+                    "R ": "R'", "R'": "R ", "R2": "R2",
+                    "B ": "B'", "B'": "B ", "B2": "B2",
+                    "D ": "D'", "D'": "D ", "D2": "D2",
+                    "L ": "L'", "L'": "L ", "L2": "L2"}
 
 class Button:
 
@@ -183,37 +188,77 @@ def is_cube_solved(perm):
     return True
 
 
-def scan(paths, perms):
-    new_paths = []
-    new_perms = []
-    for n in range(len(paths)):
-        for notation in NOTATIONS:
-            if paths[n][-2] != notation[0]:
-                new_path = paths[n]
-                new_path += notation
-                new_perm = produce_permutation(notation, perms[n])
-                new_paths.append(new_path)
-                new_perms.append(new_perm)
-                if is_cube_solved(new_perm):
-                    return None, None, new_path
-    return new_paths, new_perms, None
-
-
 def find_solution(perm):
+    """Bidirectional BFS search - much faster than unidirectional"""
     if is_cube_solved(perm):
         return []
-    paths = [notation for notation in NOTATIONS]
-    perms = [produce_permutation(path, perm) for path in paths]
-    for n in range(len(paths)):
-        if is_cube_solved(perms[n]):
-            return paths[n]
-    print(f"\n\n1) {((pygame.time.get_ticks() - last_time) // 100) / 10}")
-    for _ in range(10):
-        paths, perms, solution_path = scan(paths, perms)
-        if solution_path is not None:
-            print(f"\nsolved in {((pygame.time.get_ticks() - last_time) // 100) / 10} seconds")
-            return solution_path
-        print(f"{_+2}) {((pygame.time.get_ticks() - last_time) // 100) / 10}")
+    
+    solved = "ggggwwwwrrrrbbbbyyyyoooo"
+    
+    forward_visited = {perm: ""}
+    forward_queue = [perm]
+    
+    backward_visited = {solved: ""}
+    backward_queue = [solved]
+    
+    max_depth = 7
+    
+    for depth in range(max_depth):
+        new_forward = []
+        for state in forward_queue:
+            path = forward_visited[state]
+            last_move = path[-1] if path else None
+            
+            for notation in NOTATIONS:
+                if last_move and notation[0] == last_move:
+                    continue
+                    
+                new_state = produce_permutation(notation, state)
+                
+                if new_state in backward_visited:
+                    forward_path = path + notation
+                    backward_path = backward_visited[new_state]
+                    reversed_back = ""
+                    for i in range(len(backward_path)-2, -1, -2):
+                        move = backward_path[i:i+2]
+                        reversed_back += INVERSE_NOTATION[move]
+                    return forward_path + reversed_back
+                
+                if new_state not in forward_visited:
+                    forward_visited[new_state] = path + notation
+                    new_forward.append(new_state)
+        
+        forward_queue = new_forward
+        
+        new_backward = []
+        for state in backward_queue:
+            path = backward_visited[state]
+            last_move = path[-1] if path else None
+            
+            for notation in NOTATIONS:
+                if last_move and notation[0] == last_move:
+                    continue
+                    
+                new_state = produce_permutation(notation, state)
+                
+                if new_state in forward_visited:
+                    forward_path = forward_visited[new_state]
+                    backward_path = path + notation
+                    reversed_back = ""
+                    for i in range(len(backward_path)-2, -1, -2):
+                        move = backward_path[i:i+2]
+                        reversed_back += INVERSE_NOTATION[move]
+                    return forward_path + reversed_back
+                
+                if new_state not in backward_visited:
+                    backward_visited[new_state] = path + notation
+                    new_backward.append(new_state)
+        
+        backward_queue = new_backward
+        
+        print(f"Depth {depth+1}: Forward={len(forward_visited)}, Backward={len(backward_visited)}")
+    
+    return None
 
 
 CUBE_FACE_POSITIONS = [(W // 4, 7 * W // 32), (W // 4, 3 * W // 32), (3 * W // 8, 7 * W // 32),
@@ -320,15 +365,18 @@ while True:
         if not is_cube_solved(current_permutation) and current_permutation != last_permutation_solved:
             last_time = pygame.time.get_ticks()
             solution = find_solution(current_permutation)
-            last_solution_permutations = produce_permutations_from_path(current_permutation, solution)
-            last_permutation_solved = current_permutation
-            solution = convert_path_into_display_text(solution)
-            solution_surf = FONT_LARGE.render(solution, True, TEXT_COLOR_2_1)
-            solution_rect = solution_surf.get_rect(center=(3 * W // 8, 89 * W // 128))
-            if current_permutation != last_scrambled_permutation:
-                scramble = ""
-                last_scrambled_permutation = None
-                scramble_surf = FONT_LARGE.render("", True, TEXT_COLOR_1_1)
+            if solution:
+                elapsed = ((pygame.time.get_ticks() - last_time) / 1000)
+                print(f"Solved in {elapsed:.3f} seconds\n")
+                last_solution_permutations = produce_permutations_from_path(current_permutation, solution)
+                last_permutation_solved = current_permutation
+                solution = convert_path_into_display_text(solution)
+                solution_surf = FONT_LARGE.render(solution, True, TEXT_COLOR_2_1)
+                solution_rect = solution_surf.get_rect(center=(3 * W // 8, 89 * W // 128))
+                if current_permutation != last_scrambled_permutation:
+                    scramble = ""
+                    last_scrambled_permutation = None
+                    scramble_surf = FONT_LARGE.render("", True, TEXT_COLOR_1_1)
         elif is_cube_solved(current_permutation) and "" == scramble:
             solution = ""
             last_solution_permutations = []
